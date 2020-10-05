@@ -1,6 +1,4 @@
-// const Department = require("./department.js");
-// const Employee = require("./employees.js");
-// const Roles = require("./roles.js");
+require("dotenv")
 require("console.table");
 const inquirer = require("inquirer")
 var mysql = require("mysql");
@@ -13,7 +11,7 @@ var con = mysql.createConnection({
 
     user: "root",
 
-    password: "",
+    password: "process.env.SQL_PASS",
     database: "employee_tracker_db"
 
 });
