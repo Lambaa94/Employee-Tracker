@@ -1,0 +1,23 @@
+{
+  "name": "employee-tracker",
+  "version": "1.0.0",
+  "description": "A CLI application to manage employees.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lambaa94/Employee-Tracker.git"
+  },
+  "author": "James Lamb",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Lambaa94/Employee-Tracker/issues"
+  },
+  "homepage": "https://github.com/Lambaa94/Employee-Tracker#readme",
+  "dependencies": {
+    "inquirer": "^7.3.3",
+    "mysql": "^2.18.1"
+  }
+}
