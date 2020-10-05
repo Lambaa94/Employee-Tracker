@@ -1,4 +1,4 @@
-require("dotenv")
+require("dotenv").config();
 require("console.table");
 const inquirer = require("inquirer")
 var mysql = require("mysql");
@@ -11,7 +11,7 @@ var con = mysql.createConnection({
 
     user: "root",
 
-    password: "process.env.SQL_PASS",
+    password: process.env.SQL_PASS,
     database: "employee_tracker_db"
 
 });
