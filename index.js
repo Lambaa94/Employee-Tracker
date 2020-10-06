@@ -87,89 +87,101 @@ function addEmployee() {
     con.query("SELECT * FROM employee", function (err, empData) {
         if (err) throw err;
         const currentEmps = empData.map(item => "Id: " + item.id + " | " + item.first_name + " " + item.last_name);
-        
+
         con.query("SELECT * FROM role", function (err, roleData) {
             if (err) throw err;
             const roleNames = roleData.map(item => "Id: " + item.id + " | " + item.title)
-           
-            inquirer.prompt([
-                {
-                    type: "input",
-                    message: "What is the employee's first name?",
-                    name: "first_name"
-                },
-                {
-                    type: "input",
-                    message: "What is the employee's last name?",
-                    name: "last_name"
-                },
-                {
-                    type: "list",
-                    message: "What is the employee's role?",
-                    name: "role",
-                    choices: roleNames
-                },
-                {
-                    type: "list",
-                    message: "Who is the employee's manager?",
-                    name: "manager",
-                    choices: currentEmps
-                },
+            if (roleNames.length > 0) {
+                inquirer.prompt([
+                    {
+                        type: "input",
+                        message: "What is the employee's first name?",
+                        name: "first_name"
+                    },
+                    {
+                        type: "input",
+                        message: "What is the employee's last name?",
+                        name: "last_name"
+                    },
+                    {
+                        type: "list",
+                        message: "What is the employee's role?",
+                        name: "role",
+                        choices: roleNames
+                    },
+                    {
+                        type: "list",
+                        message: "Who is the employee's manager?",
+                        name: "manager",
+                        choices: [(currentEmps), "None"]
+                    },
 
-            ]).then(function (addEmployee) {
-                var first = addEmployee.first_name;
-                var last = addEmployee.last_name;
-                var role = addEmployee.role.charAt(4)
-                var manager = addEmployee.manager.charAt(4)
-                var query = "INSERT INTO employee SET ?";
-                con.query(query, { first_name: first, last_name: last, role_id: role, manager_id: manager }, function (err, res) {
-                    if (err) throw err;
-                    console.log(res.affectedRows + " employee inserted!\n");
-                    mainMenu()
+                ]).then(function (addEmployee) {
+                    var first = addEmployee.first_name;
+                    var last = addEmployee.last_name;
+                    var role = addEmployee.role.charAt(4)
+                    var manager = addEmployee.manager.charAt(4)
+                    var query = "INSERT INTO employee SET ?";
+                    con.query(query, { first_name: first, last_name: last, role_id: role, manager_id: manager }, function (err, res) {
+                        if (err) throw err;
+                        console.log(res.affectedRows + " employee inserted!\n");
+                        mainMenu()
+                    });
+                    console.log(`Added ${first} ${last} to the database`);
+
                 });
-                console.log(`Added ${first} ${last} to the database`);
+            } else {
+                console.log("I'm sorry! Please enter a role first.");
+                mainMenu()
+            };
 
-            });
         });
+
     });
+
 };
 
 function addRole() {
     con.query("SELECT * FROM department", function (err, departData) {
         if (err) throw err;
         const departments = departData.map(item => "Id: " + item.id + " | " + item.name)
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "What is the title of the role you would like to add?",
-            name: "title"
-        },
-        {
-            type: "input",
-            message: "What is the salary of this role?",
-            name: "salary"
-        },
-        {
-            type: "list",
-            message: "In which Department is this role?",
-            name: "department_id",
-            choices: departments
-        },
+        if (departments.length > 0) {
+            inquirer.prompt([
+                {
+                    type: "input",
+                    message: "What is the title of the role you would like to add?",
+                    name: "title"
+                },
+                {
+                    type: "input",
+                    message: "What is the salary of this role?",
+                    name: "salary"
+                },
+                {
+                    type: "list",
+                    message: "In which Department is this role?",
+                    name: "department_id",
+                    choices: departments
+                },
 
-    ]).then(function (addRole) {
-        var title = addRole.title;
-        var salary = addRole.salary;
-        var depart = addRole.department_id.charAt(4)
-        var query = "INSERT INTO role SET ?";
-        con.query(query, { title: title, salary: salary, department_id: depart }, function (err, res) {
-            if (err) throw err;
-            console.log(res.affectedRows + " role inserted!\n");
-            console.log(`Added ${title} to the database!`);
+            ]).then(function (addRole) {
+                var title = addRole.title;
+                var salary = parseFloat(addRole.salary)
+                var depart = addRole.department_id.charAt(4)
+                var query = "INSERT INTO role SET ?";
+                con.query(query, { title: title, salary: salary, department_id: depart }, function (err, res) {
+                    if (err) throw err;
+                    console.log(res.affectedRows + " role inserted!\n");
+                    console.log(`Added ${title} to the database!`);
+                    mainMenu()
+                });
+
+            })
+        } else {
+            console.log("I'm sorry! You must enter a Department first.")
             mainMenu()
-        });
-
+        };
     });
-});
 }
 
 function addDepartment() {
@@ -199,29 +211,34 @@ function updateEmployeeRole() {
         con.query("SELECT * FROM role", function (err, roleData) {
             if (err) throw err;
             const roleNames = roleData.map(item => "Id: " + item.id + " | " + item.title);
+            if (roleNames.length > 0) {
+                inquirer.prompt([
+                    {
+                        type: "list",
+                        message: "Which employee would you like to update their role?",
+                        name: "employee",
+                        choices: currentEmps
+                    },
+                    {
+                        type: "list",
+                        message: "Which role would you like this employee to have?",
+                        name: "role",
+                        choices: roleNames
+                    }
+                ]).then(function (updateRole) {
+                    var employee = updateRole.employee.charAt(4);
+                    var role = updateRole.role.charAt(4);
+                    var query = "UPDATE employee SET ? WHERE ?"
+                    con.query(query, [{ role_id: role }, { id: employee }]);
 
-            inquirer.prompt([
-                {
-                    type: "list",
-                    message: "Which employee would you like to update their role?",
-                    name: "employee",
-                    choices: currentEmps
-        },
-                {
-                    type: "list",
-                    message: "Which role would you like this employee to have?",
-                    name: "role",
-                    choices: roleNames
-                }
-            ]).then(function (updateRole) {
-                var employee = updateRole.employee.charAt(4);
-                var role = updateRole.role.charAt(4);
-                var query = "UPDATE employee SET ? WHERE ?"
-                con.query(query, [{ role_id: role }, { id: employee }]);
-
-                console.log("Role Updated!");
+                    console.log("Role Updated!");
+                    mainMenu();
+                })
+            } else {
+                console.log("I'm sorry! You must enter a Role to update one!");
                 mainMenu();
-            })
+            }
         });
+
     });
 };
