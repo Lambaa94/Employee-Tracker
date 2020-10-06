@@ -2,7 +2,16 @@ require("dotenv").config();
 require("console.table");
 const inquirer = require("inquirer")
 var mysql = require("mysql");
+var figlet = require('figlet');
 
+figlet('*WELCOME*', function (err, data) {
+    if (err) {
+        console.log('Something went wrong...');
+        console.dir(err);
+        return;
+    }
+    console.log(data)
+});
 
 var con = mysql.createConnection({
     host: "localhost",
@@ -60,10 +69,10 @@ function mainMenu() {
 
     })
 };
-// √
+
 function viewAllEmployees() {
     // SELECT * FROM employee;
-    let query = "SELECT * FROM employee";
+    let query = "SELECT employee.id AS Id, employee.first_name AS First_Name, employee.last_name AS Last_Name, role.title AS Role, department.name AS Department, role.salary AS Salary FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department on role.department_id = department.id;";
     con.query(query, function (err, data) {
         console.log("\nEmployees from database\n");
         console.table(data);
@@ -72,10 +81,10 @@ function viewAllEmployees() {
 
 
 };
-// √
+
 function viewAllRoles() {
     // SELECT * FROM role;
-    let query = "SELECT * FROM role";
+    let query = "SELECT role.title AS Role, role.salary AS Salary, department.name AS Department FROM role LEFT JOIN department ON department_id = department.id";
     con.query(query, function (err, data) {
         console.log("\nRoles from database\n");
         console.table(data);
@@ -83,53 +92,116 @@ function viewAllRoles() {
     });
 };
 
+
 function addEmployee() {
     con.query("SELECT * FROM employee", function (err, empData) {
         if (err) throw err;
-        const currentEmps = empData.map(item => "Id: " + item.id + " | " + item.first_name + " " + item.last_name);
+        const currentEmps = empData.map(item => "Id: " + item.id + " | " + item.first_name + " " + item.last_name)
+
+
+        // const currentEmps = empData.map(item => item.first_name + " " + item.last_name);
+        currentEmps.push("No Manager")
+        const employeeId = empData.map(item => item.id);
+
+
 
         con.query("SELECT * FROM role", function (err, roleData) {
             if (err) throw err;
             const roleNames = roleData.map(item => "Id: " + item.id + " | " + item.title)
+
+
             if (roleNames.length > 0) {
-                inquirer.prompt([
-                    {
-                        type: "input",
-                        message: "What is the employee's first name?",
-                        name: "first_name"
-                    },
-                    {
-                        type: "input",
-                        message: "What is the employee's last name?",
-                        name: "last_name"
-                    },
-                    {
-                        type: "list",
-                        message: "What is the employee's role?",
-                        name: "role",
-                        choices: roleNames
-                    },
-                    {
-                        type: "list",
-                        message: "Who is the employee's manager?",
-                        name: "manager",
-                        choices: [(currentEmps), "None"]
-                    },
+                if (currentEmps.length <= 0) {
+                    inquirer.prompt([
+                        {
+                            type: "input",
+                            message: "What is the employee's first name?",
+                            name: "first_name"
+                        },
+                        {
+                            type: "input",
+                            message: "What is the employee's last name?",
+                            name: "last_name"
+                        },
+                        {
+                            type: "list",
+                            message: "What is the employee's role?",
+                            name: "role",
+                            choices: roleNames
+                        },
+                        {
+                            type: "list",
+                            message: "The first member in this database will not have a manager.",
+                            name: "manager",
+                            choices: ["None"]
+                        }
 
-                ]).then(function (addEmployee) {
-                    var first = addEmployee.first_name;
-                    var last = addEmployee.last_name;
-                    var role = addEmployee.role.charAt(4)
-                    var manager = addEmployee.manager.charAt(4)
-                    var query = "INSERT INTO employee SET ?";
-                    con.query(query, { first_name: first, last_name: last, role_id: role, manager_id: manager }, function (err, res) {
-                        if (err) throw err;
-                        console.log(res.affectedRows + " employee inserted!\n");
-                        mainMenu()
+                    ]).then(function (addEmployee) {
+                        var first = addEmployee.first_name;
+                        var last = addEmployee.last_name;
+                        var role = addEmployee.role.charAt(4)
+                        var query = "INSERT INTO employee SET ?";
+
+
+                        con.query(query, { first_name: first, last_name: last, role_id: role }, function (err, res) {
+                            if (err) throw err;
+                            console.log(res.affectedRows + " employee inserted!\n");
+                            mainMenu()
+                        });
+                        console.log(`Added ${first} ${last} to the database`);
+
                     });
-                    console.log(`Added ${first} ${last} to the database`);
+                } else {
+                    inquirer.prompt([
+                        {
+                            type: "input",
+                            message: "What is the employee's first name?",
+                            name: "first_name"
+                        },
+                        {
+                            type: "input",
+                            message: "What is the employee's last name?",
+                            name: "last_name"
+                        },
+                        {
+                            type: "list",
+                            message: "What is the employee's role?",
+                            name: "role",
+                            choices: roleNames
+                        },
+                        {
+                            type: "list",
+                            message: "Who is the employee's manager?",
+                            name: "manager",
+                            choices: currentEmps
 
-                });
+                        }
+
+                    ]).then(function (addEmployee) {
+                        var manager;
+                        var first = addEmployee.first_name;
+                        var last = addEmployee.last_name;
+                        var role = addEmployee.role.charAt(4)
+                        manager = addEmployee.manager.charAt(4);
+                        
+                        if (manager !== "''") {
+           
+                        var query = "INSERT INTO employee SET ?";
+                        con.query(query, { first_name: first, last_name: last, role_id: role }, function (err, res) {
+                            if (err) throw err;
+                            console.log(res.affectedRows + " employee inserted!\n");
+                            mainMenu()
+                        });
+                        console.log(`Added ${first} ${last} to the database`);
+                        } else {var query = "INSERT INTO employee SET ?";
+                        con.query(query, { first_name: first, last_name: last, role_id: role, manager_id: manager }, function (err, res) {
+                            if (err) throw err;
+                            console.log(res.affectedRows + " employee inserted!\n");
+                            mainMenu()
+                        });
+                        console.log(`Added ${first} ${last} to the database`);}
+                    });
+                }
             } else {
                 console.log("I'm sorry! Please enter a role first.");
                 mainMenu()
@@ -140,6 +212,10 @@ function addEmployee() {
     });
 
 };
+
+
+
+
 
 function addRole() {
     con.query("SELECT * FROM department", function (err, departData) {
@@ -152,7 +228,7 @@ function addRole() {
                     message: "What is the title of the role you would like to add?",
                     name: "title"
                 },
-                {
+                {//If salary is NaN how do I kick it back? //
                     type: "input",
                     message: "What is the salary of this role?",
                     name: "salary"
@@ -196,7 +272,7 @@ function addDepartment() {
         var query = "INSERT INTO department SET ?";
         con.query(query, { name: department }, function (err, res) {
             if (err) throw err;
-            console.log(res.affectedRows + " department inserted!\n");
+            console.log(res.affectedRows + " Department inserted!\n");
             console.log(`Added ${department} to the database!`);
             mainMenu();
         });
@@ -207,7 +283,7 @@ function addDepartment() {
 function updateEmployeeRole() {
     con.query("SELECT * FROM employee", function (err, empData) {
         if (err) throw err;
-        const currentEmps = empData.map(item => "Id: " + item.id + " | " + item.first_name + " " + item.last_name);
+        let currentEmps = empData.map(item => "Id: " + item.id + " | " + item.first_name + " " + item.last_name);
         con.query("SELECT * FROM role", function (err, roleData) {
             if (err) throw err;
             const roleNames = roleData.map(item => "Id: " + item.id + " | " + item.title);

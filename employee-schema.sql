@@ -30,4 +30,3 @@ CREATE TABLE employee (
 	PRIMARY KEY(id)
 );
 
--- SELECT * FROM role INNER JOIN employee ON role.id = employee.role_id;
