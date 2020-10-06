@@ -86,13 +86,12 @@ function viewAllRoles() {
 function addEmployee() {
     con.query("SELECT * FROM employee", function (err, empData) {
         if (err) throw err;
-        const currentEmps = empData.map(item => item.first_name + " " + item.last_name);
-        const employeeId = empData.map(item => item.id);
-        console.log(empData);
+        const currentEmps = empData.map(item => "Id: " + item.id + " | " + item.first_name + " " + item.last_name);
+        
         con.query("SELECT * FROM role", function (err, roleData) {
             if (err) throw err;
-            const roleNames = roleData.map(item => item.title)
-            const roleIds = roleData.map(item => item.id)
+            const roleNames = roleData.map(item => "Id: " + item.id + " | " + item.title)
+           
             inquirer.prompt([
                 {
                     type: "input",
@@ -120,8 +119,8 @@ function addEmployee() {
             ]).then(function (addEmployee) {
                 var first = addEmployee.first_name;
                 var last = addEmployee.last_name;
-                var role = addEmployee.role //Need to match this up with role_id
-                var manager = addEmployee.manager; //Need to match this up with manager_id
+                var role = addEmployee.role.charAt(4)
+                var manager = addEmployee.manager.charAt(4)
                 var query = "INSERT INTO employee SET ?";
                 con.query(query, { first_name: first, last_name: last, role_id: role, manager_id: manager }, function (err, res) {
                     if (err) throw err;
@@ -136,6 +135,9 @@ function addEmployee() {
 };
 
 function addRole() {
+    con.query("SELECT * FROM department", function (err, departData) {
+        if (err) throw err;
+        const departments = departData.map(item => "Id: " + item.id + " | " + item.name)
     inquirer.prompt([
         {
             type: "input",
@@ -149,14 +151,15 @@ function addRole() {
         },
         {
             type: "list",
-            message: "What is the department id?",
-            name: "department_id"
+            message: "In which Department is this role?",
+            name: "department_id",
+            choices: departments
         },
 
     ]).then(function (addRole) {
         var title = addRole.title;
         var salary = addRole.salary;
-        var depart = addRole.department_id
+        var depart = addRole.department_id.charAt(4)
         var query = "INSERT INTO role SET ?";
         con.query(query, { title: title, salary: salary, department_id: depart }, function (err, res) {
             if (err) throw err;
@@ -166,7 +169,8 @@ function addRole() {
         });
 
     });
-};
+});
+}
 
 function addDepartment() {
     inquirer.prompt([
@@ -191,11 +195,11 @@ function addDepartment() {
 function updateEmployeeRole() {
     con.query("SELECT * FROM employee", function (err, empData) {
         if (err) throw err;
-        const currentEmps = empData.map(item => item.first_name + " " + item.last_name);
+        const currentEmps = empData.map(item => "Id: " + item.id + " | " + item.first_name + " " + item.last_name);
         con.query("SELECT * FROM role", function (err, roleData) {
             if (err) throw err;
-            const roleNames = roleData.map(item => item.title)
-            const roleIds = roleData.map(item => item.id)
+            const roleNames = roleData.map(item => "Id: " + item.id + " | " + item.title);
+
             inquirer.prompt([
                 {
                     type: "list",
@@ -210,8 +214,8 @@ function updateEmployeeRole() {
                     choices: roleNames
                 }
             ]).then(function (updateRole) {
-                var employee = updateRole.employee;
-                var role = updateRole.role;
+                var employee = updateRole.employee.charAt(4);
+                var role = updateRole.role.charAt(4);
                 var query = "UPDATE employee SET ? WHERE ?"
                 con.query(query, [{ role_id: role }, { id: employee }]);
 
