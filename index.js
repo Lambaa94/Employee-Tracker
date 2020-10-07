@@ -213,7 +213,7 @@ function addEmployee() {
 function addRole() {
     con.query("SELECT * FROM department", function (err, departData) {
         if (err) throw err;
-        const departments = departData.map(item => "Id: " + item.id + " | " + item.name)
+        const departments = departData.map(item => item.name)
         if (departments.length > 0) {
             inquirer.prompt([
                 {
@@ -221,7 +221,7 @@ function addRole() {
                     message: "What is the title of the role you would like to add?",
                     name: "title"
                 },
-                {//If salary is NaN how do I kick it back? //
+                {
                     type: "input",
                     message: "What is the salary of this role?",
                     name: "salary"
@@ -236,9 +236,9 @@ function addRole() {
             ]).then(function (addRole) {
                 var title = addRole.title;
                 var salary = parseFloat(addRole.salary)
-                var depart = addRole.department_id.charAt(4)
-                var query = "INSERT INTO role SET ?";
-                con.query(query, { title: title, salary: salary, department_id: depart }, function (err, res) {
+                var depart = addRole.department_id
+                
+                con.query('INSERT INTO role(title, salary, department_id) VALUES (?, ?, (SELECT id FROM department WHERE name = ?))',[title, salary, depart], function (err, res) {
                     if (err) throw err;
                     console.log(res.affectedRows + " role inserted!\n");
                     console.log(`Added ${title} to the database!`);
