@@ -39,7 +39,7 @@ function mainMenu() {
         type: "list",
         name: "mainMenu",
         message: "What would you like to do?",
-        choices: ["View All Employees", "View All Roles", "Add Employee", "Add Role", "Update Employee Role", "Add Department", "Exit"],
+        choices: ["View All Employees", "View All Roles","View All Departments", "Add Employee", "Add Role", "Update Employee Role", "Add Department", "Exit"],
 
     }]).then(function ({ mainMenu }) {
         if (mainMenu === "View All Employees") {
@@ -64,6 +64,10 @@ function mainMenu() {
 
         if (mainMenu === "Update Employee Role") {
             updateEmployeeRole();
+        };
+
+        if (mainMenu === "View All Departments") {
+            viewAllDepartments();
         };
 
         if (mainMenu === "Exit") {
@@ -95,6 +99,15 @@ function viewAllRoles() {
     });
 };
 
+function viewAllDepartments() {
+    // SELECT * FROM Department;
+    let query = "SELECT department.id AS Id, department.name AS Department FROM department";
+    con.query(query, function (err, data) {
+        console.log("\nDepartments from database\n");
+        console.table(data);
+        mainMenu();
+    });
+};
 
 function addEmployee() {
     con.query("SELECT * FROM employee", function (err, empData) {
