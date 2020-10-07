@@ -313,3 +313,31 @@ function updateEmployeeRole() {
 
     });
 };
+
+
+// To remove employee.. unfinished remove function //
+
+
+// function removeEmployee() {
+//     con.query("SELECT * FROM employee", function (err, empData) {
+//         if (err) throw err;
+        
+//         const currentEmps = empData.map(item => item.first_name + " " + item.last_name);
+//         inquirer.prompt([
+//             {
+//                 type: "list",
+//                 message: "Which employee would you like to remove?",
+//                 name: "removeEmp",
+//                 choices: currentEmps
+//             }
+//         ]).then(({ removeEmp }) => {
+//             con.query('DELETE FROM employee WHERE = (SELECT id FROM employee WHERE CONCAT(first_name, " ",last_name) = ?)', [removeEmp], function(err, res)
+//             {if (err) throw err;
+//             mainMenu();
+//             });
+//         });
+        
+
+
+//     });
+// };
