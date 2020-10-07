@@ -75,7 +75,7 @@ function mainMenu() {
 
 function viewAllEmployees() {
     // SELECT * FROM employee;
-    let query = "SELECT employee.id AS Id, employee.first_name AS First_Name, employee.last_name AS Last_Name, role.title AS Role, department.name AS Department, role.salary AS Salary FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department on role.department_id = department.id;";
+    let query = "SELECT employee.id AS Id, employee.first_name AS First_Name, employee.last_name AS Last_Name, role.title AS Role, department.name AS Department, role.salary AS Salary, employee.manager_id AS Manager_Id FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department on role.department_id = department.id";
     con.query(query, function (err, data) {
         console.log("\nEmployees from database\n");
         console.table(data);
@@ -186,7 +186,7 @@ function addEmployee() {
                         var manager = addEmployee.manager;
                         
                         con.query(
-                            'INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(?, ?, (SELECT id FROM role WHERE title = ? ),(SELECT id FROM (SELECT id FROM employee WHERE CONCAT(first_name, " ",last_name) = ?) AS temptable))',[first, last, role, manager], function (err, res) {
+                            'INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(?, ?, (SELECT id FROM role WHERE title = ? ),(SELECT id FROM (SELECT id FROM employee WHERE CONCAT(first_name, " ",last_name) = ?) AS temporaryTable))',[first, last, role, manager], function (err, res) {
                             if (err) throw err;
                             console.log(res.affectedRows + " employee inserted!\n");
                             mainMenu()
@@ -276,10 +276,10 @@ function addDepartment() {
 function updateEmployeeRole() {
     con.query("SELECT * FROM employee", function (err, empData) {
         if (err) throw err;
-        const currentEmps = empData.map(item => "Id: " + item.id + " | " + item.first_name + " " + item.last_name);
+        const currentEmps = empData.map(item => item.first_name + " " + item.last_name);
         con.query("SELECT * FROM role", function (err, roleData) {
             if (err) throw err;
-            const roleNames = roleData.map(item => "Id: " + item.id + " | " + item.title);
+            const roleNames = roleData.map(item => item.title);
             if (roleNames.length > 0) {
                 inquirer.prompt([
                     {
@@ -295,14 +295,16 @@ function updateEmployeeRole() {
                         choices: roleNames
                     }
                 ]).then(function (updateRole) {
-                    var employee = updateRole.employee.charAt(4);
-                    var role = updateRole.role.charAt(4);
-                    var query = "UPDATE employee SET ? WHERE ?"
-                    con.query(query, [{ role_id: role }, { id: employee }]);
+                    var employee = updateRole.employee;
+                    var role = updateRole.role;
+                    con.query(`UPDATE employee 
+                    SET role_id = (SELECT id FROM role WHERE title = ? ) WHERE id = (SELECT id FROM(SELECT id FROM employee WHERE CONCAT(first_name," ",last_name) = ?) AS tmptable)`, [role, employee], function(err, res) {
+                            if (err) throw err;
 
                     console.log("Role Updated!");
                     mainMenu();
-                })
+                    });
+                });
             } else {
                 console.log("I'm sorry! You must enter a Role to update one!");
                 mainMenu();
