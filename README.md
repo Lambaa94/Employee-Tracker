@@ -10,6 +10,7 @@ This was my first project that I got to work with *MYSQL*. At first this seemed 
 
 
 * [Usage](#usage)
+* [Installation](#installation)
 * [Credits](#credits)
 * [License](#license)
 
@@ -22,6 +23,10 @@ This was my first project that I got to work with *MYSQL*. At first this seemed 
 *Below is a link to the associated repository.*
 
 *https://github.com/Lambaa94/Employee-Tracker*
+
+## Installation
+
+npm i
 
 ## Credits
 
